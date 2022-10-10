@@ -85,7 +85,7 @@ for i = 1:10
     m0 = gen_m0_vary(m)
 
     fig = figure(figsize=(20,12))
-    plot_velocity(m0', d; new_fig=false, name="background model")
+    plot_velocity(m0', d; new_fig=false, name="background model", vmax=maximum(m))
     tight_layout();
     safesave(joinpath(plotsdir("compass-example"),savename(exp_config; digits=6)*"_background.png"), fig); 
     close(fig);

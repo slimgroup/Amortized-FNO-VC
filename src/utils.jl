@@ -41,7 +41,7 @@ function gen_m0_vary(m; idx_wb=idx_wb, d=d)
     X = convert(Array{Float32},reshape(range(0f0,stop=(n[1]-1)*d[1],length=n[1]),:,1))
     Cova = gaussian_kernel(X,X',theta0=5,delta=250,cons=1f-5)
     cutlength = rand(MvNormal(zeros(Float32,n[1]),Cova))
-    cutlength = Int.(round.(cutlength/norm(cutlength) * 500 .+ 80))
+    cutlength = Int.(round.(cutlength/norm(cutlength) * 500 .+ 20))
     start_cut = rand(idx_wb+1:n[2]-maximum(cutlength))
     keep_idx = [deleteat!(collect(idx_wb+1:n[2]), start_cut-idx_wb:start_cut+cutlength[i]-1-idx_wb) for i = 1:n[1]]
     #λ = Float32((maximum(m)-minimum(m))/2/π * rand(Float32))

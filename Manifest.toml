@@ -980,9 +980,11 @@ version = "0.1.2"
 
 [[deps.SlimPlotting]]
 deps = ["ColorSchemes", "PyPlot", "Statistics"]
-git-tree-sha1 = "789014569e9be4a1520c61eee9d7f055992e5b8f"
+git-tree-sha1 = "1778fef9a735024421309bdc987a0bdc679e50fb"
+repo-rev = "master"
+repo-url = "https://github.com/slimgroup/SlimPlotting.jl.git"
 uuid = "f6d04670-764e-495b-a720-91c3c9a588ff"
-version = "0.1.2"
+version = "0.1.3"
 
 [[deps.SnoopPrecompile]]
 git-tree-sha1 = "f604441450a3c0569830946e5b33b78c928e1a85"
