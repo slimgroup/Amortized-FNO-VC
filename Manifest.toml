@@ -375,12 +375,6 @@ git-tree-sha1 = "8b251ec0582187eff1ee5c0220501ef30a59d2f7"
 uuid = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
 version = "0.7.2"
 
-[[deps.ImageGather]]
-deps = ["DSP", "JUDI", "PyCall"]
-git-tree-sha1 = "f0a8eae09e19baeffa128724f4f15c2a17d0cf01"
-uuid = "355d8124-6b2e-49b5-aab5-cdbc0a5fccbe"
-version = "0.1.0"
-
 [[deps.ImageIO]]
 deps = ["FileIO", "IndirectArrays", "JpegTurbo", "LazyModules", "Netpbm", "OpenEXR", "PNGFiles", "QOI", "Sixel", "TiffImages", "UUIDs"]
 git-tree-sha1 = "342f789fd041a55166764c351da1710db97ce0e0"
@@ -530,9 +524,9 @@ version = "1.0.0"
 
 [[deps.JLD2]]
 deps = ["FileIO", "MacroTools", "Mmap", "OrderedCollections", "Pkg", "Printf", "Reexport", "TranscodingStreams", "UUIDs"]
-git-tree-sha1 = "0d0ad913e827d13c5e88a73f9333d7e33c424576"
+git-tree-sha1 = "1c3ff7416cb727ebf4bab0491a56a296d7b8cf1d"
 uuid = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
-version = "0.4.24"
+version = "0.4.25"
 
 [[deps.JLLWrappers]]
 deps = ["Preferences"]
