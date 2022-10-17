@@ -4,7 +4,7 @@
 
 using DrWatson
 @quickactivate "Amortized-FNO-VC"
-using JUDI, LinearAlgebra, Images, PyPlot, DSP, Printf
+using JUDI, LinearAlgebra, Images, PyPlot, Printf
 using JLD2
 using SlimPlotting
 using Random

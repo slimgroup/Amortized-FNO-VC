@@ -2,6 +2,7 @@ name = "Amortized-FNO-VC"
 authors = ["Ziyi Yin"]
 
 [deps]
+AzStorage = "c6697862-1611-5eae-9ef8-48803c85c8d6"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
