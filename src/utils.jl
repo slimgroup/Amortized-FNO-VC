@@ -1,3 +1,22 @@
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table s begin
+        "--nsrc"
+            help = "Number of sources"
+            arg_type = Int
+            default = 16
+        "--length"
+            help = "Max length to cut or pad for velocity models"
+            arg_type = Int
+            default = 20
+        "--ncont"
+            help = "Number of background models for each compass slice"
+            arg_type = Int
+            default = 200
+    end
+    return parse_args(s)
+end
+
 function gaussian_background(m::Matrix{Float32}, width::Union{Number, Tuple{Number, Number}}; idx_wb=idx_wb)
     v =  1f0./sqrt.(m);
     v0 = deepcopy(v);

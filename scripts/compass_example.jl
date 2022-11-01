@@ -9,8 +9,10 @@ using JLD2
 using SlimPlotting
 using Random
 using Distributions
+using ArgParse
 Random.seed!(2022)
 
+matplotlib.use("agg")
 include(srcdir("utils.jl"))
 JLD2.@load "../data/BGCompass_tti_625m.jld2" n d o m;
 d = (6f0, 6f0);
@@ -81,7 +83,7 @@ tight_layout();
 safesave(joinpath(plotsdir("compass-example"),savename(exp_config; digits=6)*"_true.png"), fig); 
 close(fig);
 
-lengthmax = 15
+lengthmax = 20
 
 for i = 1:20
     exp_config = @strdict nsrc nxrec n d lengthmax
@@ -92,21 +94,14 @@ for i = 1:20
     tight_layout();
     safesave(joinpath(plotsdir("compass-example"),savename(exp_config; digits=6)*"_background.png"), fig); 
     close(fig);
-end
-
-for i = 1:5
-
-    exp_config = @strdict nsrc nxrec n d lengthmax
-
-    m0 = gen_m0_vary(m; lengthmax=lengthmax)
 
     J = judiJacobian(F(; m=m0), q)
     @time rtm = J'*dobs
 
     fig = figure(figsize=(20,12))
-    plot_simage(reshape(Mr * rtm, n)', d; d_scale=0, new_fig=false, name="RTM")
+    plot_simage(reshape(Mr * rtm, n)', d; d_scale=0, new_fig=false, name="RTM"); colorbar();
     tight_layout();
     safesave(joinpath(plotsdir("compass-example"),savename(exp_config; digits=6)*"_continued.png"), fig); 
     close(fig);
-    
 end
+
