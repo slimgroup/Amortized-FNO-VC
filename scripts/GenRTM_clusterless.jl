@@ -161,7 +161,7 @@ println("RTM")
 Base.flush(stdout)
 
 nsample = nslice * ncont
-nsample = 200
+nsample = 50
 
 @batchdef nslice = 20
 @batchdef ncont = 200
