@@ -65,8 +65,16 @@ container_registry = batch.models.ContainerRegistry(registry_server=registry_inf
                                                      user_name=registry_info["_USER_NAME"],
                                                      password=registry_info["_PASSWORD"])
 
-nwk = parse(Int, AzureClusterlessHPC.__params__["_NODE_COUNT_PER_POOL"])
-create_pool(container_registry=container_registry)
+# Autoscale formula
+auto_scale_formula = """
+    samples = \$PendingTasks.GetSamplePercent(TimeInterval_Minute * 15);
+    tasks = samples < 10 ? max(0,\$PendingTasks.GetSample(1)) : max(\$PendingTasks.GetSample(1), avg(\$PendingTasks.GetSample(TimeInterval_Minute * 15)));
+    targetVMs = tasks > 0? tasks:max(0, \$TargetDedicatedNodes/2);
+    \$TargetDedicatedNodes=max(0, min(targetVMs, 4));
+    \$NodeDeallocationOption = taskcompletion;"""
+
+    nwk = parse(Int, AzureClusterlessHPC.__params__["_NODE_COUNT_PER_POOL"])
+create_pool(container_registry=container_registry; enable_auto_scale=true, auto_scale_formula=auto_scale_formula)
 
 # Setup AzStorage
 session = AzSession(;protocal=AzClientCredentials, resource=registry_info["_RESOURCE"])
@@ -127,7 +135,7 @@ opt = JUDI.Options(isic=true)
     o = (0f0, 0f0);
     n = (650, 341);
 end
-@batchdef function rtm(i, srcGeometry, recGeometry, q, m0, dobs, lengthmax, container)
+@batchdef function rtm(i, q, m0, dobs, container)
 
     d = (6f0, 6f0);
     o = (0f0, 0f0);
@@ -140,7 +148,7 @@ end
     model0 = Model(n, d, o, m0; nb=80)
 
     # Setup operators
-    F = judiModeling(model0, srcGeometry, recGeometry; options=JUDI.Options(isic=true))
+    F = judiModeling(model0, q.geometry, dobs.geometry; options=JUDI.Options(isic=true))
     J = judiJacobian(F, q)
     @time rtm = J'*dobs
 
@@ -153,11 +161,12 @@ println("RTM")
 Base.flush(stdout)
 
 nsample = nslice * ncont
+nsample = 200
 
 @batchdef nslice = 20
 @batchdef ncont = 200
 
-futures = @batchexec pmap(i -> rtm(i, srcGeometry, recGeometry, q, m0set[i], d_obs_set[i], lengthmax, container), 1:nsample)
+futures = @batchexec pmap(i -> rtm(i, q, m0set[i], d_obs_set[i], container), 1:nsample)
 fetch(futures; num_restart=0, timeout=24000, task_timeout=1000)
 
 delete_all_jobs()
