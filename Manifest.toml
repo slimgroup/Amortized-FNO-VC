@@ -79,6 +79,12 @@ git-tree-sha1 = "17a4162cdd464cee2e71e74e68dd7df3549f021f"
 uuid = "00c928b4-b5f3-54d8-b38d-afd4635c4ad2"
 version = "0.4.0+0"
 
+[[deps.AzureClusterlessHPC]]
+deps = ["Distributed", "JSON", "Logging", "PyCall", "Random", "Serialization", "SyntaxTree", "Test"]
+git-tree-sha1 = "b1ed90427065c8ad80b0598f892bd5beefa5448f"
+uuid = "0090f474-c28d-4577-9e1b-9155814dbffa"
+version = "0.1.0"
+
 [[deps.BangBang]]
 deps = ["Compat", "ConstructionBase", "Future", "InitialValues", "LinearAlgebra", "Requires", "Setfield", "Tables", "ZygoteRules"]
 git-tree-sha1 = "7fe6d92c4f281cf4ca6f2fba0ce7b299742da7ca"
@@ -1168,6 +1174,12 @@ version = "1.0.1"
 [[deps.SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
 uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
+
+[[deps.SyntaxTree]]
+deps = ["Test"]
+git-tree-sha1 = "9f33aae2c72d812968a6b7af9e189aa925661a99"
+uuid = "a4af3ec5-f8ac-5fed-a759-c2e80b4d74cb"
+version = "1.0.1"
 
 [[deps.TOML]]
 deps = ["Dates"]
