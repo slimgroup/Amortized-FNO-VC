@@ -70,7 +70,7 @@ auto_scale_formula = """
     samples = \$PendingTasks.GetSamplePercent(TimeInterval_Minute * 15);
     tasks = samples < 10 ? max(0,\$PendingTasks.GetSample(1)) : max(\$PendingTasks.GetSample(1), avg(\$PendingTasks.GetSample(TimeInterval_Minute * 15)));
     targetVMs = tasks > 0? tasks:max(0, \$TargetDedicatedNodes/2);
-    \$TargetDedicatedNodes=max(0, min(targetVMs, 4));
+    \$TargetDedicatedNodes=max(0, min(targetVMs, 160));
     \$NodeDeallocationOption = taskcompletion;"""
 
     nwk = parse(Int, AzureClusterlessHPC.__params__["_NODE_COUNT_PER_POOL"])
@@ -161,7 +161,6 @@ println("RTM")
 Base.flush(stdout)
 
 nsample = nslice * ncont
-nsample = 50
 
 @batchdef nslice = 20
 @batchdef ncont = 200

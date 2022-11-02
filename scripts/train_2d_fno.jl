@@ -9,11 +9,10 @@ using FNO4CO2
 using PyPlot
 using JLD2
 using Flux, Random, FFTW
-using MAT, Statistics, LinearAlgebra
+using Statistics, LinearAlgebra
 using CUDA
 using ProgressMeter
 using InvertibleNetworks:ActNorm
-using HDF5
 using SlimPlotting
 using ArgParse
 using JUDI
