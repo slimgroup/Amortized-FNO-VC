@@ -13,6 +13,10 @@ function parse_commandline()
             help = "Number of background models for each compass slice"
             arg_type = Int
             default = 200
+        "--nslice"
+            help = "Number of compass slices"
+            arg_type = Int
+            default = 20
     end
     return parse_args(s)
 end
