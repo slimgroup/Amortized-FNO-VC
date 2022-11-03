@@ -32,8 +32,8 @@ nsample = nslice * ncont
 ## n,d 
 n = (650, 341)
 d = 1f0 ./ n
-ntrain = 1600
-nvalid = 300
+ntrain = 3200
+nvalid = 600
 
 # Define raw data directory
 continued_background_path = datadir("background-models", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2")
@@ -125,6 +125,9 @@ prog = Progress(ntrain * epochs)
 x_plot = x_valid[:, :, :, 1]
 y_plot = y_valid[:, :, 1]
 
+x_plot_train = x_train[:, :, :, 1]
+y_plot_train = y_train[:, :, 1]
+
 # Define result directory
 
 sim_name = "2D-FNO-vc-compass"
@@ -149,7 +152,7 @@ for ep = 1:epochs
             y = y |> gpu
         end
         grads = gradient(w) do
-            global loss = norm(NN(x)-y)^2f0
+            global loss = norm(NN(x)-y)/norm(y)
             return loss
         end
         Loss[(ep-1)*nbatches+b] = loss
@@ -162,7 +165,47 @@ for ep = 1:epochs
     Flux.testmode!(NN, true)
     NN_save = NN |> cpu
     y_predict = NN_save(tensorize(reshape(x_plot,n[1],n[2],3,1), grid, AN))
+    y_predict_train = NN_save(tensorize(reshape(x_plot_train,n[1],n[2],3,1), grid, AN))
 
+    ### plot training
+    fig = figure(figsize=(16, 12))
+
+    subplot(4,2,1)
+    plot_velocity(x_plot_train[:,:,1]', (6f0, 6f0); new_fig=false, vmax=0.25, name="initial background model", cmap="GnBu"); colorbar();
+    
+    subplot(4,2,2)
+    plot_simage(x_plot_train[:,:,2]', (6f0, 6f0); new_fig=false, cmap="seismic", name="initial RTM", vmax=0.3); colorbar();
+    
+    subplot(4,2,3)
+    plot_velocity(x_plot_train[:,:,3]', (6f0, 6f0); new_fig=false, vmax=0.25, name="new background model", cmap="GnBu"); colorbar();
+    
+    subplot(4,2,4)
+    plot_simage(y_predict_train[:,:,1]', (6f0, 6f0); new_fig=false, cmap="seismic", name="predicted continued RTM", vmax=0.3); colorbar();
+    
+    subplot(4,2,5)
+    plot_simage(y_plot_train', (6f0, 6f0); new_fig=false, cmap="seismic", name="true continued RTM", vmax=0.3); colorbar();
+    
+    subplot(4,2,6)
+    plot_simage(y_predict_train[:,:,1]'-y_plot', (6f0, 6f0); new_fig=false, cmap="RdGy", vmax=0.06, name="diff"); colorbar();
+    
+    subplot(4,2,7)
+    plot(y_predict_train[500,:,1]);
+    plot(y_plot_train[500,:]);
+    legend(["predict","true"])
+    title("vertical profile at 3km")
+    
+    subplot(4,2,8)
+    plot(y_predict_train[333,:,1]);
+    plot(y_plot_train[333,:]);
+    legend(["predict","true"])
+    title("vertical profile at 2km")
+
+    tight_layout()
+    fig_name = @strdict ep batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid
+    safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc_train.png"), fig);
+    close(fig)
+
+    ### plot validation
     fig = figure(figsize=(16, 12))
 
     subplot(4,2,1)
@@ -197,10 +240,10 @@ for ep = 1:epochs
 
     tight_layout()
     fig_name = @strdict ep batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid
-    safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc.png"), fig);
+    safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc_valid.png"), fig);
     close(fig)
 
-    Loss_valid[ep] = norm((NN_save(tensorize(x_valid, grid, AN))) - y_valid)^2f0 * batch_size/nvalid
+    Loss_valid[ep] = norm((NN_save((tensorize(x_valid, grid, AN))) |> gpu) - (y_valid |> gpu))/norm((y_valid |> gpu))
 
     loss_train = Loss[1:ep*nbatches]
     loss_valid = Loss_valid[1:ep]
