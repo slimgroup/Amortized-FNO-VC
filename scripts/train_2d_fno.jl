@@ -32,8 +32,8 @@ nsample = nslice * ncont
 ## n,d 
 n = (650, 341)
 d = 1f0 ./ n
-ntrain = 3200
-nvalid = 600
+ntrain = 1600
+nvalid = 300
 
 # Define raw data directory
 continued_background_path = datadir("background-models", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2")
@@ -91,7 +91,7 @@ end
 x_train, x_valid, y_train, y_valid = get_train_valid();
 
 ## network structure
-batch_size = 1
+batch_size = 20
 learning_rate = 2f-3
 epochs = 5000
 modes = 24
@@ -160,7 +160,8 @@ for ep = 1:epochs
     end
 
     Flux.testmode!(NN, true)
-    y_predict = NN(tensorize(x_plot, grid, AN) |> gpu)   |> cpu
+    NN_save = NN |> cpu
+    y_predict = NN_save(tensorize(reshape(x_plot,n[1],n[2],3,1), grid, AN))
 
     fig = figure(figsize=(16, 12))
 
@@ -195,11 +196,11 @@ for ep = 1:epochs
     title("vertical profile at 2km")
 
     tight_layout()
-    fig_name = @strdict ep batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid nsamples
+    fig_name = @strdict ep batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid
     safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc.png"), fig);
     close(fig)
 
-    Loss_valid[ep] = norm((NN(tensorize(x_valid, grid, AN) |> gpu)) - (y_valid |> gpu))^2f0 * batch_size/nvalid
+    Loss_valid[ep] = norm((NN_save(tensorize(x_valid, grid, AN))) - y_valid)^2f0 * batch_size/nvalid
 
     loss_train = Loss[1:ep*nbatches]
     loss_valid = Loss_valid[1:ep]
@@ -221,10 +222,9 @@ for ep = 1:epochs
     safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_3Dfno_loss.png"), fig);
     close(fig);
 
-    NN_save = NN |> cpu
     w_save = Flux.params(NN_save)    
 
-    param_dict = @strdict ep NN_save w_save batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid loss_train loss_valid nsamples
+    param_dict = @strdict ep NN_save w_save batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid loss_train loss_valid
     @tagsave(
         datadir(sim_name, savename(param_dict, "jld2"; digits=6)),
         param_dict;
@@ -236,7 +236,7 @@ end
 NN_save = NN |> cpu
 w_save = params(NN_save)
 
-final_dict = @strdict Loss Loss_valid epochs NN_save w_save batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid nsamples
+final_dict = @strdict Loss Loss_valid epochs NN_save w_save batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid
 
 @tagsave(
     datadir(sim_name, savename(final_dict, "jld2"; digits=6)),
