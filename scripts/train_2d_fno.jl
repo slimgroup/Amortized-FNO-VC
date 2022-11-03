@@ -243,7 +243,7 @@ for ep = 1:epochs
     safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc_valid.png"), fig);
     close(fig)
 
-    Loss_valid[ep] = norm((NN_save((tensorize(x_valid, grid, AN))) |> gpu) - (y_valid |> gpu))/norm((y_valid |> gpu))
+    Loss_valid[ep] = norm((NN((tensorize(x_valid, grid, AN))) |> gpu) - (y_valid |> gpu))/norm((y_valid |> gpu))
 
     loss_train = Loss[1:ep*nbatches]
     loss_valid = Loss_valid[1:ep]
