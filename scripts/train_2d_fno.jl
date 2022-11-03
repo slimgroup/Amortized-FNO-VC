@@ -116,6 +116,7 @@ w = Flux.params(NN)
 
 opt = Flux.Optimise.ADAMW(learning_rate, (0.9f0, 0.999f0), 1f-4)
 nbatches = Int(floor(ntrain/batch_size))
+nbatches_valid = Int(floor(nvalid/batch_size))
 
 Loss = zeros(Float32,epochs*nbatches)
 Loss_valid = zeros(Float32, epochs)
@@ -142,6 +143,7 @@ for ep = 1:epochs
 
     Base.flush(Base.stdout)
     idx_e = reshape(randperm(ntrain)[1:batch_size*nbatches], batch_size, nbatches)
+    idx_v = reshape(randperm(nvalid)[1:batch_size*nbatches_valid], batch_size, nbatches_valid)
 
     Flux.trainmode!(NN, true)
     for b = 1:nbatches
@@ -243,7 +245,13 @@ for ep = 1:epochs
     safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc_valid.png"), fig);
     close(fig)
 
-    Loss_valid[ep] = norm((NN((tensorize(x_valid, grid, AN))) |> gpu) - (y_valid |> gpu))/norm((y_valid |> gpu))
+    x_valid_e = tensorize(x_valid[:, :, :, idx_v[:,1]], grid, AN)
+    y_valid_e = y_valid[:, :, idx_v[:,b]]
+    if gpu_flag
+        x_valid_e = x_valid_e |> gpu
+        y_valid_e = y_valid_e |> gpu
+    end
+    Loss_valid[ep] = norm(NN(x_valid_e) - y_valid_e)/norm(y_valid_e)
 
     loss_train = Loss[1:ep*nbatches]
     loss_valid = Loss_valid[1:ep]
