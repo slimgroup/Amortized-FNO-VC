@@ -56,35 +56,39 @@ if ~isfile(continued_rtm_path)
     'lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2 -q -O $continued_rtm_path`)
 end
 
-#load
-continued_background_dict = JLD2.load(continued_background_path)
-init_rtm_dict = JLD2.load(init_rtm_path)
-continued_rtm_dict = JLD2.load(continued_rtm_path)
-
-continued_m0_set = zeros(Float32, n[1], n[2], nsample);
-for i = 1:nsample
-    continued_m0_set[:,:,i] = continued_background_dict["m0set"][i]
-end
-init_m0 = init_rtm_dict["m0_init_set"];
-init_m0_set = repeat(init_m0, inner= [1, 1, ncont]);
-init_rtm = init_rtm_dict["rtm_init_set"];
-init_rtm_set = repeat(init_rtm, inner= [1, 1, ncont]);
-continued_rtm_set = continued_rtm_dict["rtmset"];
-
 ## grid
 grid = gen_grid(n, d);
 
-## X and Y
-# scale RTM by 2000
-X = cat(init_m0_set, init_rtm_set/2f3, continued_m0_set, dims=4);
-X = permutedims(X, [1,2,4,3]);  # nx, ny, nc, nsample
-Y = continued_rtm_set/2f3;
+#load
+function get_train_valid()
+    continued_background_dict = JLD2.load(continued_background_path)["m0set"]
+    init_m0 = JLD2.load(init_rtm_path)["m0_init_set"];
+    init_rtm = JLD2.load(init_rtm_path)["rtm_init_set"];
+    continued_rtm_set = JLD2.load(continued_rtm_path)["rtmset"];
 
-x_train = X[:,:,:,1:ntrain];
-x_valid = X[:,:,:,ntrain+1:ntrain+nvalid];
+    continued_m0_set = zeros(Float32, n[1], n[2], nsample);
+    for i = 1:nsample
+        continued_m0_set[:,:,i] = continued_background_dict[i]
+    end
+    init_m0_set = repeat(init_m0, inner= [1, 1, ncont]);
+    init_rtm_set = repeat(init_rtm, inner= [1, 1, ncont]);
 
-y_train = Y[:,:,1:ntrain];
-y_valid = Y[:,:,ntrain+1:ntrain+nvalid];
+    ## X and Y
+    # scale RTM by 2000
+    X = cat(reshape(init_m0_set, n[1], n[2], 1, nsample), reshape(init_rtm_set/2f3, n[1], n[2], 1, nsample), reshape(continued_m0_set, n[1], n[2], 1, nsample), dims=3);
+    # nx, ny, nc, nsample
+    Y = continued_rtm_set/2f3;
+
+    x_train = X[:,:,:,1:ntrain];
+    x_valid = X[:,:,:,ntrain+1:ntrain+nvalid];
+
+    y_train = Y[:,:,1:ntrain];
+    y_valid = Y[:,:,ntrain+1:ntrain+nvalid];
+
+    return x_train, x_valid, y_train, y_valid
+end
+
+x_train, x_valid, y_train, y_valid = get_train_valid();
 
 ## network structure
 batch_size = 1
