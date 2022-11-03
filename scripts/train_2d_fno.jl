@@ -246,7 +246,7 @@ for ep = 1:epochs
     close(fig)
 
     x_valid_e = tensorize(x_valid[:, :, :, idx_v[:,1]], grid, AN)
-    y_valid_e = y_valid[:, :, idx_v[:,b]]
+    y_valid_e = y_valid[:, :, idx_v[:,1]]
     if gpu_flag
         x_valid_e = x_valid_e |> gpu
         y_valid_e = y_valid_e |> gpu
