@@ -188,7 +188,7 @@ for ep = 1:epochs
     plot_simage(y_plot_train', (6f0, 6f0); new_fig=false, cmap="seismic", name="true continued RTM", vmax=0.3); colorbar();
     
     subplot(4,2,6)
-    plot_simage(y_predict_train[:,:,1]'-y_plot', (6f0, 6f0); new_fig=false, cmap="RdGy", vmax=0.06, name="diff"); colorbar();
+    plot_simage(y_predict_train[:,:,1]'-y_plot_train', (6f0, 6f0); new_fig=false, cmap="RdGy", vmax=0.06, name="diff"); colorbar();
     
     subplot(4,2,7)
     plot(y_predict_train[500,:,1]);
