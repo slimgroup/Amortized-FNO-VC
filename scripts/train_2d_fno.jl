@@ -32,14 +32,17 @@ nsample = nslice * ncont
 ## n,d 
 n = (650, 341)
 d = 1f0 ./ n
-ntrain = 1600
-nvalid = 300
+ntrain = 3200
+nvalid = 600
 
 # Define raw data directory
 continued_background_path = datadir("background-models", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2")
 init_rtm_path = datadir("init", "nslice=$(nslice)_nsrc=$(nsrc).jld2")
 continued_rtm_path = datadir("rtms", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2")
 
+mkpath(datadir("background-models"))
+mkpath(datadir("init"))
+mkpath(datadir("rtms"))
 if ~isfile(continued_background_path)
     run(`wget https://www.dropbox.com/s/8e3q0j414peeh83/'
         'lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2 -q -O $continued_background_path`)
@@ -84,7 +87,7 @@ y_train = Y[:,:,1:ntrain];
 y_valid = Y[:,:,ntrain+1:ntrain+nvalid];
 
 ## network structure
-batch_size = 10
+batch_size = 1
 learning_rate = 2f-3
 epochs = 5000
 modes = 24
@@ -120,14 +123,14 @@ y_plot = y_valid[:, :, 1]
 
 # Define result directory
 
-sim_name = "2D_FNO_vc"
+sim_name = "2D-FNO-vc-compass"
 exp_name = "velocity-continuation"
 
 save_dict = @strdict exp_name
 plot_path = plotsdir(sim_name, savename(save_dict; digits=6))
 
 ## training
-
+println("start training")
 for ep = 1:epochs
 
     Base.flush(Base.stdout)
