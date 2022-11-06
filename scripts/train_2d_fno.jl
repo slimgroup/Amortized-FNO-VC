@@ -94,7 +94,7 @@ x_train, x_valid, y_train, y_valid = get_train_valid();
 batch_size = 20
 learning_rate = 2f-3
 epochs = 5000
-modes = 24
+modes = 96
 width = 32
 
 AN = ActNorm(ntrain)
@@ -131,7 +131,7 @@ y_plot_train = y_train[:, :, 1]
 
 # Define result directory
 
-sim_name = "2D-FNO-vc-compass-so-called-res-net"
+sim_name = "2D-FNO-vc-compass"
 exp_name = "velocity-continuation"
 
 save_dict = @strdict exp_name
@@ -154,7 +154,7 @@ for ep = 1:epochs
             y = y |> gpu
         end
         grads = gradient(w) do
-            global loss = norm(NN(x)+x[:,:,2,:]-y)/norm(y)      # NN matches the residual
+            global loss = norm(NN(x)-y)/norm(y)      # NN matches the residual
             return loss
         end
         Loss[(ep-1)*nbatches+b] = loss
@@ -166,8 +166,8 @@ for ep = 1:epochs
 
     Flux.testmode!(NN, true)
     NN_save = NN |> cpu
-    y_predict = NN_save(tensorize(reshape(x_plot,n[1],n[2],3,1), grid, AN)) + x_plot[:,:,2,1]
-    y_predict_train = NN_save(tensorize(reshape(x_plot_train,n[1],n[2],3,1), grid, AN)) + x_plot_train[:,:,2,1]
+    y_predict = NN_save(tensorize(reshape(x_plot,n[1],n[2],3,1), grid, AN))
+    y_predict_train = NN_save(tensorize(reshape(x_plot_train,n[1],n[2],3,1), grid, AN))
 
     ### plot training
     fig = figure(figsize=(16, 12))
@@ -251,7 +251,7 @@ for ep = 1:epochs
         x_valid_e = x_valid_e |> gpu
         y_valid_e = y_valid_e |> gpu
     end
-    Loss_valid[ep] = norm(NN(x_valid_e) + x_valid_e[:,:,2,:] - y_valid_e)/norm(y_valid_e)
+    Loss_valid[ep] = norm(NN(x_valid_e) - y_valid_e)/norm(y_valid_e)
 
     loss_train = Loss[1:ep*nbatches]
     loss_valid = Loss_valid[1:ep]
