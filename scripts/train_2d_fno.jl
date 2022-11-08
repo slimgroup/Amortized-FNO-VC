@@ -29,10 +29,6 @@ ncont = parsed_args["ncont"]
 nslice = parsed_args["nslice"]
 nsample = nslice * ncont
 
-## n,d 
-n = (650, 341)
-d = 1f0 ./ n
-
 # Define raw data directory
 continued_background_path = datadir("background-models", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2")
 init_rtm_path = datadir("init", "nslice=$(nslice)_nsrc=$(nsrc).jld2")
@@ -53,9 +49,6 @@ if ~isfile(continued_rtm_path)
     run(`wget https://www.dropbox.com/s/ivjj7juuuxn6lz3/'
     'lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2 -q -O $continued_rtm_path`)
 end
-
-## grid
-grid = gen_grid(n, d);
 
 #load
 function get_train_valid()
@@ -87,6 +80,13 @@ function get_train_valid()
 end
 
 x_train, x_valid, y_train, y_valid = get_train_valid();
+
+## n,d 
+n = (size(x_train,1), size(x_train,2))
+d = 1f0 ./ n
+
+## grid
+grid = gen_grid(n, d);
 
 ntrain = size(x_train)[end]
 nvalid = size(x_valid)[end]
