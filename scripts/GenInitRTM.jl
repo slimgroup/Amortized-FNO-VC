@@ -10,6 +10,7 @@ using SlimPlotting
 using Random
 using Distributions
 using ArgParse
+using InvertibleNetworks:ActNorm
 Random.seed!(2022)
 
 include(srcdir("utils.jl"));

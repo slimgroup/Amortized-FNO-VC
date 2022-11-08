@@ -83,7 +83,7 @@ function get_train_valid()
     y_train  = cat(Y[:,:,1:3200], reverse(Y[:,:,1:3200], dims=1), dims=1);
     y_valid = Y[:,:,3200+1:3200+600];
 
-    return window(x_train), window(x_valid), window(y_train), window(y_valid)
+    return x_train, x_valid, y_train, y_valid
 end
 
 x_train, x_valid, y_train, y_valid = get_train_valid();

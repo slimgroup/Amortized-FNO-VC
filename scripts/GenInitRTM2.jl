@@ -14,7 +14,7 @@ using InvertibleNetworks:ActNorm
 Random.seed!(2022)
 
 include(srcdir("utils.jl"));
-JLD2.@load datadir("velocity_set.jld2") vset;
+JLD2.@load datadir("velocity_set_2.jld2") vset;
 d = (6f0, 6f0);
 o = (0f0, 0f0);
 n = (650, 341);
@@ -60,27 +60,34 @@ opt = Options(isic=true)
 ## number of slices
 nslice = size(vset)[end]
 
-dobs_set = Vector{judiVector{Float32, Matrix{Float32}}}(undef, nslice)
+## load set of data
+JLD2.@load datadir("seismic-data-2", "nslice=$(nslice)_nsrc=$nsrc.jld2") dobs_set
+m0_init_set = zeros(Float32, n[1], n[2], nslice)
+rtm_init_set = zeros(Float32, n[1], n[2], nslice)
 for i = 1:nslice
     v = vset[:,:,i]
     m = 1f0./v.^2f0
     m0 = gaussian_background(m, 20);
+    m0_init_set[:,:,i] = m0
 
     # Setup info and model structure
     model = Model(n, d, o, m; nb=80)
     model0 = Model(n, d, o, m0; nb=80)
+
+    # Preconditioners
+    Mr = judiTopmute(n, idx_wb, 1) * judiDepthScaling(model0) * judiDepthScaling(model0)
 
     # Setup operators
     F = judiModeling(model, srcGeometry, recGeometry; options=opt)
     J = judiJacobian(F(model0), q)
 
     # Nonlinear modeling
-    @time dobs_set[i] = F * q
+    @time rtm_init_set[:,:,i] = reshape(Mr * J' * mute_turning(dobs_set[i], q), n)
 end
 
-save_dict = @strdict nslice nsrc dobs_set
+save_dict = @strdict nslice nsrc m0_init_set rtm_init_set
 @tagsave(
-    joinpath(datadir("seismic-data"), savename(save_dict, "jld2"; digits=6)),
+    joinpath(datadir("init-2"), savename(save_dict, "jld2"; digits=6)),
     save_dict;
     safe=true
 )

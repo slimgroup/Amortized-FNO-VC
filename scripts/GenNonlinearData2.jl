@@ -14,7 +14,7 @@ using InvertibleNetworks:ActNorm
 Random.seed!(2022)
 
 include(srcdir("utils.jl"));
-JLD2.@load datadir("velocity_set.jld2") vset;
+JLD2.@load datadir("velocity_set_2.jld2") vset;
 d = (6f0, 6f0);
 o = (0f0, 0f0);
 n = (650, 341);
@@ -80,7 +80,7 @@ end
 
 save_dict = @strdict nslice nsrc dobs_set
 @tagsave(
-    joinpath(datadir("seismic-data"), savename(save_dict, "jld2"; digits=6)),
+    joinpath(datadir("seismic-data-2"), savename(save_dict, "jld2"; digits=6)),
     save_dict;
     safe=true
 )
