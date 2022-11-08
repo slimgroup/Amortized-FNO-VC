@@ -79,10 +79,10 @@ function get_train_valid()
     # nx, ny, nc, nsample
     Y = continued_rtm_set/2f3;
 
-    x_train  = cat(X[:,:,:,1:3200]; reverse(X[:,:,:,1:3200];, dims=1), dims=1);
+    x_train  = cat(X[:,:,:,1:3200], reverse(X[:,:,:,1:3200], dims=1), dims=1);
     x_valid = X[:,:,:,3200+1:3200+600];
 
-    y_train  = cat(Y[:,:,1:3200];, reverse(Y[:,:,1:3200];, dims=1), dims=1);
+    y_train  = cat(Y[:,:,1:3200], reverse(Y[:,:,1:3200], dims=1), dims=1);
     y_valid = Y[:,:,3200+1:3200+600];
 
     return window(x_train), window(x_valid), window(y_train), window(y_valid)
