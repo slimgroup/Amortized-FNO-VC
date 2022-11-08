@@ -32,7 +32,7 @@ nsample = nslice * ncont
 ## n,d 
 n = (650, 341)
 d = 1f0 ./ n
-ntrain = 3200
+ntrain = 6400
 nvalid = 600
 
 # Define raw data directory
@@ -93,7 +93,7 @@ end
 x_train, x_valid, y_train, y_valid = get_train_valid();
 
 ## network structure
-batch_size = 1
+batch_size = 20
 learning_rate = 2f-3
 epochs = 5000
 modes = 96
