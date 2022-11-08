@@ -70,10 +70,10 @@ function get_train_valid()
     # nx, ny, nc, nsample
     Y = continued_rtm_set/2f3;
 
-    x_train  = cat(X[:,:,:,1:3200], reverse(X[:,:,:,1:3200], dims=1), dims=1);
+    x_train  = cat(X[:,:,:,1:3200], reverse(X[:,:,:,1:3200], dims=1), dims=4);
     x_valid = X[:,:,:,3200+1:3200+600];
 
-    y_train  = cat(Y[:,:,1:3200], reverse(Y[:,:,1:3200], dims=1), dims=1);
+    y_train  = cat(Y[:,:,1:3200], reverse(Y[:,:,1:3200], dims=1), dims=3);
     y_valid = Y[:,:,3200+1:3200+600];
 
     return x_train, x_valid, y_train, y_valid
@@ -82,14 +82,14 @@ end
 x_train, x_valid, y_train, y_valid = get_train_valid();
 
 ## n,d 
-n = (size(x_train,1), size(x_train,2))
+n = (325, 341)
 d = 1f0 ./ n
 
 ## grid
 grid = gen_grid(n, d);
 
-ntrain = size(x_train)[end]
-nvalid = size(x_valid)[end]
+ntrain = size(x_train)[end] * 4         #windowing
+nvalid = size(x_valid)[end] * 4         #windowing
 
 ## network structure
 batch_size = 20
@@ -116,11 +116,11 @@ Loss_valid = zeros(Float32, epochs)
 prog = Progress(ntrain * epochs)
 
 # plot figure
-x_plot = x_valid[:, :, :, 1]
-y_plot = y_valid[:, :, 1]
+x_plot = x_valid[1:325, :, :, 1]
+y_plot = y_valid[1:325, :, 1]
 
-x_plot_train = x_train[:, :, :, 1]
-y_plot_train = y_train[:, :, 1]
+x_plot_train = x_train[1:325, :, :, 1]
+y_plot_train = y_train[1:325, :, 1]
 
 # Define result directory
 
@@ -132,6 +132,7 @@ plot_path = plotsdir(sim_name, savename(save_dict; digits=6))
 
 ## training
 println("start training")
+window_ = true
 for ep = 1:epochs
 
     Base.flush(Base.stdout)
@@ -140,8 +141,11 @@ for ep = 1:epochs
 
     Flux.trainmode!(NN, true)
     for b = 1:nbatches
-        x = tensorize(x_train[:, :, :, idx_e[:,b]], grid, AN)
-        y = y_train[:, :, idx_e[:,b]]
+        img_idx = (idx_e[:,b] .- 1) .÷ 4
+        window_idx = (idx_e[:,b] .- 1) .% 4 .+ 1
+        x_window = cat([window(x_train[:, :, :, img_idx[i]:img_idx[i]], window_idx[i]) for i = 1:length(img_idx)]..., dims=4)
+        x = tensorize(x_window, grid, AN)
+        y = cat([window(y_train[:, :, img_idx[i]:img_idx[i]], window_idx[i]) for i = 1:length(img_idx)]..., dims=3)
         if gpu_flag
             x = x |> gpu
             y = y |> gpu
@@ -184,19 +188,19 @@ for ep = 1:epochs
     plot_simage(y_predict_train[:,:,1]'-y_plot_train', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff"); colorbar();
     
     subplot(5,2,7)
-    plot(x_plot_train[:,:,2][500,:]);
-    plot(y_plot_train[500,:]);
+    plot(x_plot_train[:,:,2][167,:]);
+    plot(y_plot_train[167,:]);
     legend(["initial", "true"])
-    title("vertical profile at 3km")
+    title("vertical profile at 1km")
 
     subplot(5,2,8)
     plot_simage(x_plot_train[:,:,2]'-y_plot_train', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff between initial RTM and continued RTM"); colorbar();
     
     subplot(5,2,9)
-    plot(y_predict_train[500,:,1]);
-    plot(y_plot_train[500,:]);
+    plot(y_predict_train[167,:,1]);
+    plot(y_plot_train[167,:]);
     legend(["predict","true"])
-    title("vertical profile at 3km")
+    title("vertical profile at 1km")
     
     subplot(5,2,10)
     plot(y_predict_train[333,:,1]);
@@ -231,19 +235,19 @@ for ep = 1:epochs
     plot_simage(y_predict[:,:,1]'-y_plot', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff"); colorbar();
     
     subplot(5,2,7)
-    plot(x_plot[:,:,2][500,:]);
-    plot(y_plot[500,:]);
+    plot(x_plot[:,:,2][167,:]);
+    plot(y_plot[167,:]);
     legend(["initial", "true"])
-    title("vertical profile at 3km")
+    title("vertical profile at 1km")
 
     subplot(5,2,8)
     plot_simage(x_plot[:,:,2]'-y_plot', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff between initial RTM and continued RTM"); colorbar();
     
     subplot(5,2,9)
-    plot(y_predict[500,:,1]);
-    plot(y_plot[500,:]);
+    plot(y_predict[167,:,1]);
+    plot(y_plot[167,:]);
     legend(["predict","true"])
-    title("vertical profile at 3km")
+    title("vertical profile at 1km")
     
     subplot(5,2,10)
     plot(y_predict[333,:,1]);
@@ -256,8 +260,12 @@ for ep = 1:epochs
     safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc_valid.png"), fig);
     close(fig)
 
-    x_valid_e = tensorize(x_valid[:, :, :, idx_v[:,1]], grid, AN)
-    y_valid_e = y_valid[:, :, idx_v[:,1]]
+    img_idx = (idx_v[:,1] .- 1) .÷ 4
+    window_idx = (idx_v[:,1] .- 1) .% 4 .+ 1
+    x_window = cat([window(x_valid[:, :, :, img_idx[i]:img_idx[i]], window_idx[i]) for i = 1:length(img_idx)]..., dims=4)
+    x_valid_e = tensorize(x_window, grid, AN)
+    y_valid_e = cat([window(y_valid[:, :, img_idx[i]:img_idx[i]], window_idx[i]) for i = 1:length(img_idx)]..., dims=3)
+
     if gpu_flag
         x_valid_e = x_valid_e |> gpu
         y_valid_e = y_valid_e |> gpu
