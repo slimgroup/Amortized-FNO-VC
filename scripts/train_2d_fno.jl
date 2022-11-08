@@ -57,7 +57,7 @@ function get_train_valid()
     init_rtm = JLD2.load(init_rtm_path)["rtm_init_set"];
     continued_rtm_set = JLD2.load(continued_rtm_path)["rtmset"];
 
-    continued_m0_set = zeros(Float32, n[1], n[2], nsample);
+    continued_m0_set = zeros(Float32, 650, 341, nsample);
     for i = 1:nsample
         continued_m0_set[:,:,i] = continued_background_dict[i]
     end
@@ -66,7 +66,7 @@ function get_train_valid()
 
     ## X and Y
     # scale RTM by 2000
-    X = cat(reshape(init_m0_set, n[1], n[2], 1, nsample), reshape(init_rtm_set/2f3, n[1], n[2], 1, nsample), reshape(continued_m0_set, n[1], n[2], 1, nsample), dims=3);
+    X = cat(reshape(init_m0_set, 650, 341, 1, nsample), reshape(init_rtm_set/2f3, 650, 341, 1, nsample), reshape(continued_m0_set, 650, 341, 1, nsample), dims=3);
     # nx, ny, nc, nsample
     Y = continued_rtm_set/2f3;
 
