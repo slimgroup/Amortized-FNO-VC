@@ -80,7 +80,7 @@ function window(X::AbstractArray{Float32, 4}; nx = 325, shift=40)
     start_point = 1:shift:size(X,1)-nx+1
     return cat([X[start_point[i]:start_point[i]+nx-1,:,:,:] for i = 1:length(start_point)]..., dims=length(X))
 end
-function window(X::AbstractArray{Float32, 3}; nx = 325, shift=40)
+function window(X::AbstractArray{Float32, 3}; nx = 325, shift=100)
     start_point = 1:shift:size(X,1)-nx+1
     return cat([X[start_point[i]:start_point[i]+nx-1,:,:] for i = 1:length(start_point)]..., dims=length(X))
 end
