@@ -98,16 +98,20 @@ println("RTM")
 Base.flush(stdout)
 
 nsample = nslice * ncont
-rtmset = zeros(Float32, n[1], n[2], nsample)
-for i = 1:nsample
-    Base.flush(stdout)
-    println("sample $i")
-    rtmset[:,:,i] = rtm(i, q, m0set[i], d_obs_set[i])
+counter = 0
+for j = 1:nslice
+    global rtmset = zeros(Float32, n[1], n[2], ncont)
+    for i = 1:ncont
+        global counter = counter + 1
+        Base.flush(stdout)
+        println("sample $counter")
+        global rtmset[:,:,i] = rtm(i, q, m0set[counter], d_obs_set[counter])
+    end
+    rtm_dict = @strdict lengthmax rtmset ncont nslice
+    @tagsave(
+        datadir("rtms-2-slice-$j", savename(rtm_dict, "jld2"; digits=6)),
+        rtm_dict;
+        safe=true
+    )
 end
 
-rtm_dict = @strdict lengthmax rtmset ncont nslice
-@tagsave(
-    datadir("rtms-2", savename(rtm_dict, "jld2"; digits=6)),
-    rtm_dict;
-    safe=true
-)
