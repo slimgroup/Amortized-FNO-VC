@@ -32,8 +32,6 @@ nsample = nslice * ncont
 ## n,d 
 n = (650, 341)
 d = 1f0 ./ n
-ntrain = 6400
-nvalid = 600
 
 # Define raw data directory
 continued_background_path = datadir("background-models", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2")
@@ -89,6 +87,9 @@ function get_train_valid()
 end
 
 x_train, x_valid, y_train, y_valid = get_train_valid();
+
+ntrain = size(x_train)[end]
+nvalid = size(x_valid)[end]
 
 ## network structure
 batch_size = 20
