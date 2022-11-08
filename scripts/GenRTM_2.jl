@@ -88,7 +88,7 @@ function rtm(i, q, m0, dobs)
     F = judiModeling(model0, q.geometry, dobs.geometry; options=JUDI.Options(isic=true))
     J = judiJacobian(F, q)
     @time rtm_i = J'*dobs
-    Mr = judiTopmute(n, idx_wb, 1) * judiDepthScaling(model) * judiDepthScaling(model)
+    Mr = judiTopmute(n, idx_wb, 1) * judiDepthScaling(model0) * judiDepthScaling(model0)
 
     # container
     return reshape(Mr * rtm_i, n)
