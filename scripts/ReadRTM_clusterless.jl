@@ -88,6 +88,7 @@ idx_wb = 35
 Mr = judiTopmute(n, idx_wb, 1) * judiDepthScaling(model) * judiDepthScaling(model)
 
 for i = 1:nsample
+    println("sample $i")
     idx, m0, rtm = deserialize(container,  "rtm_sample$(i)")
     rtmset[:,:,i] = reshape(Mr * vec(rtm.data), n)
 end

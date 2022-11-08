@@ -100,6 +100,7 @@ Base.flush(stdout)
 nsample = nslice * ncont
 rtmset = zeros(Float32, n[1], n[2], nsample)
 for i = 1:nsample
+    println("sample $i")
     rtmset[:,:,i] = rtm(i, q, m0set[i], d_obs_set[i])
 end
 
