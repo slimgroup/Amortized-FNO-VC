@@ -31,7 +31,7 @@ nslice = size(vset)[end]
 
 ## generate a set of m0
 idx_wb = 35
-if ~isfile(datadir("background-models", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2"))
+if ~isfile(datadir("background-models-2", "lengthmax=$(lengthmax)_ncont=$(ncont)_nslice=$(nslice).jld2"))
     m0set = vcat([[gen_m0_vary(mset[:,:,j]; lengthmax=lengthmax) for i = 1:ncont] for j = 1:nslice]...)
 
     m0_dict = @strdict lengthmax m0set ncont nslice
@@ -100,6 +100,7 @@ Base.flush(stdout)
 nsample = nslice * ncont
 rtmset = zeros(Float32, n[1], n[2], nsample)
 for i = 1:nsample
+    Base.flush(stdout)
     println("sample $i")
     rtmset[:,:,i] = rtm(i, q, m0set[i], d_obs_set[i])
 end
