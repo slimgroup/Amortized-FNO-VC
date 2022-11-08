@@ -80,9 +80,11 @@ function get_train_valid()
     Y = continued_rtm_set/2f3;
 
     x_train = X[:,:,:,1:ntrain];
+    x_train  = cat(x_train, reverse(x_train, dims=1), dims=1)
     x_valid = X[:,:,:,ntrain+1:ntrain+nvalid];
 
     y_train = Y[:,:,1:ntrain];
+    y_train  = cat(y_train, reverse(y_train, dims=1), dims=1)
     y_valid = Y[:,:,ntrain+1:ntrain+nvalid];
 
     return x_train, x_valid, y_train, y_valid
@@ -91,7 +93,7 @@ end
 x_train, x_valid, y_train, y_valid = get_train_valid();
 
 ## network structure
-batch_size = 20
+batch_size = 1
 learning_rate = 2f-3
 epochs = 5000
 modes = 96
@@ -99,14 +101,6 @@ width = 32
 
 AN = ActNorm(ntrain)
 AN.forward(x_train);
-
-function tensorize(x::AbstractArray{Float32, 3},grid::Array{Float32,3},AN::ActNorm)
-    # input nx*ny, output nx*ny*4*1
-    nx, ny, _ = size(grid)
-    return cat(AN(reshape(x, nx, ny, 3, 1))[:,:,:,1], reshape(grid, nx, ny, 2), dims=3)
-end
-
-tensorize(x::AbstractArray{Float32,4},grid::Array{Float32,3},AN::ActNorm) = cat([tensorize(x[:,:,:,i],grid,AN) for i = 1:size(x,4)]..., dims=4)
 
 NN = Net2d(modes, width; in_channels=5, out_channels=1, mid_channels=128)
 gpu_flag && (global NN = NN |> gpu)
@@ -166,37 +160,46 @@ for ep = 1:epochs
 
     Flux.testmode!(NN, true)
     NN_save = NN |> cpu
-    y_predict = NN_save(tensorize(reshape(x_plot,n[1],n[2],3,1), grid, AN))
-    y_predict_train = NN_save(tensorize(reshape(x_plot_train,n[1],n[2],3,1), grid, AN))
+    @time y_predict = NN_save(tensorize(reshape(x_plot,n[1],n[2],3,1), grid, AN))
+    @time y_predict_train = NN_save(tensorize(reshape(x_plot_train,n[1],n[2],3,1), grid, AN))
 
     ### plot training
-    fig = figure(figsize=(16, 12))
+    fig = figure(figsize=(16, 20))
 
-    subplot(4,2,1)
+    subplot(5,2,1)
     plot_velocity(x_plot_train[:,:,1]', (6f0, 6f0); new_fig=false, vmax=0.25, name="initial background model", cmap="GnBu"); colorbar();
     
-    subplot(4,2,2)
-    plot_simage(x_plot_train[:,:,2]', (6f0, 6f0); new_fig=false, cmap="seismic", name="initial RTM", vmax=0.3); colorbar();
+    subplot(5,2,2)
+    plot_simage(x_plot_train[:,:,2]', (6f0, 6f0); new_fig=false, cmap="Greys", name="initial RTM", vmax=0.3); colorbar();
     
-    subplot(4,2,3)
+    subplot(5,2,3)
     plot_velocity(x_plot_train[:,:,3]', (6f0, 6f0); new_fig=false, vmax=0.25, name="new background model", cmap="GnBu"); colorbar();
     
-    subplot(4,2,4)
-    plot_simage(y_predict_train[:,:,1]', (6f0, 6f0); new_fig=false, cmap="seismic", name="predicted continued RTM", vmax=0.3); colorbar();
+    subplot(5,2,4)
+    plot_simage(y_predict_train[:,:,1]', (6f0, 6f0); new_fig=false, cmap="Greys", name="predicted continued RTM", vmax=0.3); colorbar();
     
-    subplot(4,2,5)
-    plot_simage(y_plot_train', (6f0, 6f0); new_fig=false, cmap="seismic", name="true continued RTM", vmax=0.3); colorbar();
+    subplot(5,2,5)
+    plot_simage(y_plot_train', (6f0, 6f0); new_fig=false, cmap="Greys", name="true continued RTM", vmax=0.3); colorbar();
     
-    subplot(4,2,6)
-    plot_simage(y_predict_train[:,:,1]'-y_plot_train', (6f0, 6f0); new_fig=false, cmap="RdGy", vmax=0.06, name="diff"); colorbar();
+    subplot(5,2,6)
+    plot_simage(y_predict_train[:,:,1]'-y_plot_train', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff"); colorbar();
     
-    subplot(4,2,7)
+    subplot(5,2,7)
+    plot(x_plot_train[:,:,2][500,:]);
+    plot(y_plot_train[500,:]);
+    legend(["initial", "true"])
+    title("vertical profile at 3km")
+
+    subplot(5,2,8)
+    plot_simage(x_plot_train[:,:,2]'-y_plot_train', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff between initial RTM and continued RTM"); colorbar();
+    
+    subplot(5,2,9)
     plot(y_predict_train[500,:,1]);
     plot(y_plot_train[500,:]);
     legend(["predict","true"])
     title("vertical profile at 3km")
     
-    subplot(4,2,8)
+    subplot(5,2,10)
     plot(y_predict_train[333,:,1]);
     plot(y_plot_train[333,:]);
     legend(["predict","true"])
@@ -208,33 +211,42 @@ for ep = 1:epochs
     close(fig)
 
     ### plot validation
-    fig = figure(figsize=(16, 12))
+    fig = figure(figsize=(16, 20))
 
-    subplot(4,2,1)
+    subplot(5,2,1)
     plot_velocity(x_plot[:,:,1]', (6f0, 6f0); new_fig=false, vmax=0.25, name="initial background model", cmap="GnBu"); colorbar();
     
-    subplot(4,2,2)
-    plot_simage(x_plot[:,:,2]', (6f0, 6f0); new_fig=false, cmap="seismic", name="initial RTM", vmax=0.3); colorbar();
+    subplot(5,2,2)
+    plot_simage(x_plot[:,:,2]', (6f0, 6f0); new_fig=false, cmap="Greys", name="initial RTM", vmax=0.3); colorbar();
     
-    subplot(4,2,3)
+    subplot(5,2,3)
     plot_velocity(x_plot[:,:,3]', (6f0, 6f0); new_fig=false, vmax=0.25, name="new background model", cmap="GnBu"); colorbar();
     
-    subplot(4,2,4)
-    plot_simage(y_predict[:,:,1]', (6f0, 6f0); new_fig=false, cmap="seismic", name="predicted continued RTM", vmax=0.3); colorbar();
+    subplot(5,2,4)
+    plot_simage(y_predict[:,:,1]', (6f0, 6f0); new_fig=false, cmap="Greys", name="predicted continued RTM", vmax=0.3); colorbar();
     
-    subplot(4,2,5)
-    plot_simage(y_plot', (6f0, 6f0); new_fig=false, cmap="seismic", name="true continued RTM", vmax=0.3); colorbar();
+    subplot(5,2,5)
+    plot_simage(y_plot', (6f0, 6f0); new_fig=false, cmap="Greys", name="true continued RTM", vmax=0.3); colorbar();
     
-    subplot(4,2,6)
-    plot_simage(y_predict[:,:,1]'-y_plot', (6f0, 6f0); new_fig=false, cmap="RdGy", vmax=0.06, name="diff"); colorbar();
+    subplot(5,2,6)
+    plot_simage(y_predict[:,:,1]'-y_plot', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff"); colorbar();
     
-    subplot(4,2,7)
+    subplot(5,2,7)
+    plot(x_plot[:,:,2][500,:]);
+    plot(y_plot[500,:]);
+    legend(["initial", "true"])
+    title("vertical profile at 3km")
+
+    subplot(5,2,8)
+    plot_simage(x_plot[:,:,2]'-y_plot', (6f0, 6f0); new_fig=false, cmap="Greys", vmax=0.3, name="diff between initial RTM and continued RTM"); colorbar();
+    
+    subplot(5,2,9)
     plot(y_predict[500,:,1]);
     plot(y_plot[500,:]);
     legend(["predict","true"])
     title("vertical profile at 3km")
     
-    subplot(4,2,8)
+    subplot(5,2,10)
     plot(y_predict[333,:,1]);
     plot(y_plot[333,:]);
     legend(["predict","true"])

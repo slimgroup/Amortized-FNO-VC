@@ -67,3 +67,12 @@ function mute_turning(d_obs::judiVector{Float32, Matrix{Float32}}, q::judiVector
     end
     return d_out
 end
+
+function tensorize(x::AbstractArray{Float32, 3},grid::Array{Float32,3},AN::ActNorm)
+    # input nx*ny, output nx*ny*4*1
+    nx, ny, _ = size(grid)
+    return cat(AN(reshape(x, nx, ny, 3, 1))[:,:,:,1], reshape(grid, nx, ny, 2), dims=3)
+end
+
+tensorize(x::AbstractArray{Float32,4},grid::Array{Float32,3},AN::ActNorm) = cat([tensorize(x[:,:,:,i],grid,AN) for i = 1:size(x,4)]..., dims=4)
+
