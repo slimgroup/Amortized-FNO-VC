@@ -51,35 +51,50 @@ if ~isfile(continued_rtm_path)
 end
 
 #load
-function get_train_valid()
+function get_train_valid_x()
     continued_background_dict = JLD2.load(continued_background_path)["m0set"]
     init_m0 = JLD2.load(init_rtm_path)["m0_init_set"];
     init_rtm = JLD2.load(init_rtm_path)["rtm_init_set"];
-    continued_rtm_set = JLD2.load(continued_rtm_path)["rtmset"];
 
     continued_m0_set = zeros(Float32, 650, 341, nsample);
     for i = 1:nsample
         continued_m0_set[:,:,i] = continued_background_dict[i]
     end
+    continued_background_dict = 0
+
     init_m0_set = repeat(init_m0, inner= [1, 1, ncont]);
+    init_m0 = 0
     init_rtm_set = repeat(init_rtm, inner= [1, 1, ncont]);
+    init_rtm = 0
 
     ## X and Y
     # scale RTM by 2000
     X = cat(reshape(init_m0_set, 650, 341, 1, nsample), reshape(init_rtm_set/2f3, 650, 341, 1, nsample), reshape(continued_m0_set, 650, 341, 1, nsample), dims=3);
-    # nx, ny, nc, nsample
-    Y = continued_rtm_set/2f3;
+    init_m0 = 0
+    init_rtm = 0
+    continued_m0_set = 0
 
-    x_train  = cat(X[:,:,:,1:3200], reverse(X[:,:,:,1:3200], dims=1), dims=4);
+    x_train  = X[:,:,:,1:3200];
     x_valid = X[:,:,:,3200+1:3200+600];
 
-    y_train  = cat(Y[:,:,1:3200], reverse(Y[:,:,1:3200], dims=1), dims=3);
-    y_valid = Y[:,:,3200+1:3200+600];
-
-    return x_train, x_valid, y_train, y_valid
+    return x_train, x_valid
 end
 
-x_train, x_valid, y_train, y_valid = get_train_valid();
+x_train, x_valid = get_train_valid_x();
+x_train  = cat(x_train, reverse(x_train, dims=1), dims=4);
+
+function get_train_valid_y()
+
+    # nx, ny, nc, nsample
+    Y = JLD2.load(continued_rtm_path)["rtmset"]/2f3;
+    y_train  = Y[:,:,1:3200];
+    y_valid = Y[:,:,3200+1:3200+600];
+
+    return y_train, y_valid
+end
+
+y_train, y_valid = get_train_valid_y();
+y_train  = cat(y_train, reverse(y_train, dims=1), dims=3);
 
 ## n,d 
 n = (325, 341)
