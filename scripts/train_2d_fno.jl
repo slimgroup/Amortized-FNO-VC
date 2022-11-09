@@ -156,7 +156,7 @@ for ep = 1:epochs
 
     Flux.trainmode!(NN, true)
     for b = 1:nbatches
-        img_idx = (idx_e[:,b] .- 1) .÷ 4
+        img_idx = (idx_e[:,b] .- 1) .÷ 4 .+ 1
         window_idx = (idx_e[:,b] .- 1) .% 4 .+ 1
         x_window = cat([window(x_train[:, :, :, img_idx[i]:img_idx[i]], window_idx[i]) for i = 1:length(img_idx)]..., dims=4)
         x = tensorize(x_window, grid, AN)
