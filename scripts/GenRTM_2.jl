@@ -99,7 +99,7 @@ Base.flush(stdout)
 
 nsample = nslice * ncont
 counter = 0
-for j = 1:nslice
+for j = 501:nslice
     global rtmset = zeros(Float32, n[1], n[2], ncont)
     for i = 1:ncont
         global counter = counter + 1
