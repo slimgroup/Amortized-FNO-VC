@@ -218,10 +218,10 @@ for ep = 1:epochs
     title("vertical profile at 1km")
     
     subplot(5,2,10)
-    plot(y_predict_train[333,:,1]);
-    plot(y_plot_train[333,:]);
+    plot(y_predict_train[250,:,1]);
+    plot(y_plot_train[250,:]);
     legend(["predict","true"])
-    title("vertical profile at 2km")
+    title("vertical profile at 1.5km")
 
     tight_layout()
     fig_name = @strdict ep batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid
@@ -265,17 +265,17 @@ for ep = 1:epochs
     title("vertical profile at 1km")
     
     subplot(5,2,10)
-    plot(y_predict[333,:,1]);
-    plot(y_plot[333,:]);
+    plot(y_predict[250,:,1]);
+    plot(y_plot[250,:]);
     legend(["predict","true"])
-    title("vertical profile at 2km")
+    title("vertical profile at 1.5km")
 
     tight_layout()
     fig_name = @strdict ep batch_size Loss modes width learning_rate epochs n d AN ntrain nvalid
     safesave(joinpath(plot_path, savename(fig_name; digits=6)*"_2Dfno_vc_valid.png"), fig);
     close(fig)
 
-    img_idx = (idx_v[:,1] .- 1) .÷ 4
+    img_idx = (idx_v[:,1] .- 1) .÷ 4 .+ 1
     window_idx = (idx_v[:,1] .- 1) .% 4 .+ 1
     x_window = cat([window(x_valid[:, :, :, img_idx[i]:img_idx[i]], window_idx[i]) for i = 1:length(img_idx)]..., dims=4)
     x_valid_e = tensorize(x_window, grid, AN)
